@@ -5,14 +5,34 @@ use sdl2::{
     image::{self, InitFlag, LoadTexture},
     keyboard::Keycode,
     pixels::Color,
+    rect::{Point, Rect},
     render::{Texture, WindowCanvas},
 };
 
-fn render(canvas: &mut WindowCanvas, color: Color, texture: &Texture) -> Result<(), String> {
+#[derive(Debug)]
+struct Player {
+    position: Point,
+    sprite: Rect,
+}
+
+fn render(
+    canvas: &mut WindowCanvas,
+    color: Color,
+    texture: &Texture,
+    player: &Player,
+) -> Result<(), String> {
     canvas.set_draw_color(color);
     canvas.clear();
 
-    canvas.copy(texture, None, None)?;
+    let (width, height) = canvas.output_size()?;
+
+    let screen_position = player.position + Point::new(width as i32 / 2, height as i32 / 2);
+    let screen_rect = Rect::from_center(
+        screen_position,
+        player.sprite.width(),
+        player.sprite.height(),
+    );
+    canvas.copy(texture, player.sprite, screen_rect)?;
 
     canvas.present();
 
@@ -39,6 +59,11 @@ fn main() -> Result<(), String> {
     let texture_creator = canvas.texture_creator();
     let texture = texture_creator.load_texture("assets/bardo.png")?;
 
+    let player = Player {
+        position: Point::new(0, 0),
+        sprite: Rect::new(0, 0, 26, 36),
+    };
+
     let mut event_pump = sdl_context.event_pump()?;
     let mut i: i32 = 0;
     'running: loop {
@@ -64,6 +89,7 @@ fn main() -> Result<(), String> {
             &mut canvas,
             Color::RGB(i as u8, 64, 255 - i as u8),
             &texture,
+            &player,
         )?;
 
         // Time Management
