@@ -1,13 +1,21 @@
 use std::time::Duration;
 
-use sdl2::{event::Event, keyboard::Keycode, pixels::Color};
+use sdl2::{
+    event::Event, keyboard::Keycode, pixels::Color, render::WindowCanvas, sys::DefaultExposures,
+};
+
+fn render(canvas: &mut WindowCanvas, color: Color) {
+    canvas.set_draw_color(color);
+    canvas.clear();
+    canvas.present();
+}
 
 fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
 
     let window = video_subsystem
-        .window("rust-sdk2 demo", 800, 600)
+        .window("game tutorial", 800, 600)
         .position_centered()
         .build()
         .expect("Could not initialize video subsystem.");
@@ -17,15 +25,10 @@ fn main() -> Result<(), String> {
         .build()
         .expect("Could not make a canvas.");
 
-    canvas.set_draw_color(Color::RGB(0, 255, 255));
-    canvas.clear();
-    canvas.present();
     let mut event_pump = sdl_context.event_pump()?;
     let mut i = 0;
     'running: loop {
-        i = (i + 1) % 255;
-        canvas.set_draw_color(Color::RGB(i, 64, 255 - i));
-        canvas.clear();
+        // Handle events
         for event in event_pump.poll_iter() {
             match event {
                 Event::Quit { .. }
@@ -38,11 +41,16 @@ fn main() -> Result<(), String> {
                 _ => {}
             }
         }
-        
-        canvas.present();
+
+        // Update
+        i = (i + 1) & 255;
+
+        // Render
+        render(&mut canvas, Color::RGB(i, 64, 255 - i));
+
+        // Time Management
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
-    
 
     Ok(())
 }
