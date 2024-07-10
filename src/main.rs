@@ -19,20 +19,20 @@ fn render(
     canvas: &mut WindowCanvas,
     color: Color,
     texture: &Texture,
-    player: &Player,
+    players: Vec<&Player>,
 ) -> Result<(), String> {
     canvas.set_draw_color(color);
     canvas.clear();
 
     let (width, height) = canvas.output_size()?;
 
-    let screen_position = player.position + Point::new(width as i32 / 2, height as i32 / 2);
+    let screen_position = players[0].position + Point::new(width as i32 / 2, height as i32 / 2);
     let screen_rect = Rect::from_center(
         screen_position,
-        player.sprite.width(),
-        player.sprite.height(),
+        players[0].sprite.width(),
+        players[0].sprite.height(),
     );
-    canvas.copy(texture, player.sprite, screen_rect)?;
+    canvas.copy(texture, players[0].sprite, screen_rect)?;
 
     canvas.present();
 
@@ -89,7 +89,7 @@ fn main() -> Result<(), String> {
             &mut canvas,
             Color::RGB(i as u8, 64, 255 - i as u8),
             &texture,
-            &player,
+            vec![&player],
         )?;
 
         // Time Management
