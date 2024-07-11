@@ -1,0 +1,9 @@
+chain_width = 60
+wrap_comments = true
+condense_wildcard_suffixes = true
+format_strings = true
+match_arm_blocks = false
+match_block_trailing_comma = true
+struct_lit_single_line = true
+struct_lit_width = 60
+struct_variant_width = 60

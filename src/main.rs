@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 
 use sdl2::{
     event::Event,
@@ -13,26 +13,27 @@ use sdl2::{
 struct Player {
     position: Point,
     sprite: Rect,
+    speed: i32,
 }
 
 fn render(
     canvas: &mut WindowCanvas,
     color: Color,
     texture: &Texture,
-    players: Vec<&Player>,
+    player: &Player,
 ) -> Result<(), String> {
     canvas.set_draw_color(color);
     canvas.clear();
 
     let (width, height) = canvas.output_size()?;
 
-    let screen_position = players[0].position + Point::new(width as i32 / 2, height as i32 / 2);
+    let screen_position = player.position + Point::new(width as i32 / 2, height as i32 / 2);
     let screen_rect = Rect::from_center(
         screen_position,
-        players[0].sprite.width(),
-        players[0].sprite.height(),
+        player.sprite.width(),
+        player.sprite.height(),
     );
-    canvas.copy(texture, players[0].sprite, screen_rect)?;
+    canvas.copy(texture, player.sprite, screen_rect)?;
 
     canvas.present();
 
@@ -59,9 +60,10 @@ fn main() -> Result<(), String> {
     let texture_creator = canvas.texture_creator();
     let texture = texture_creator.load_texture("assets/bardo.png")?;
 
-    let player = Player {
+    let mut player = Player {
         position: Point::new(0, 0),
         sprite: Rect::new(0, 0, 26, 36),
+        speed: 5,
     };
 
     let mut event_pump = sdl_context.event_pump()?;
@@ -70,14 +72,22 @@ fn main() -> Result<(), String> {
         // Handle events
         for event in event_pump.poll_iter() {
             match event {
-                Event::Quit { .. }
-                | Event::KeyDown {
-                    keycode: Some(Keycode::Escape),
-                    ..
-                } => {
+                Event::Quit { .. } | Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
                     break 'running;
-                }
-                _ => {}
+                },
+                Event::KeyDown { keycode: Some(Keycode::Left), .. } => {
+                    player.position = player.position.offset(-player.speed, 0);
+                },
+                Event::KeyDown { keycode: Some(Keycode::Right), .. } => {
+                    player.position = player.position.offset(player.speed, 0);
+                },
+                Event::KeyDown { keycode: Some(Keycode::UP), .. } => {
+                    player.position = player.position.offset(0, -player.speed);
+                },
+                Event::KeyDown { keycode: Some(Keycode::Down), .. } => {
+                    player.position = player.position.offset(0, player.speed);
+                },
+                _ => {},
             }
         }
 
@@ -89,7 +99,7 @@ fn main() -> Result<(), String> {
             &mut canvas,
             Color::RGB(i as u8, 64, 255 - i as u8),
             &texture,
-            vec![&player],
+            &player,
         )?;
 
         // Time Management
